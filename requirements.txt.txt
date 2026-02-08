@@ -1,6 +1,0 @@
-streamlit
-pandas
-yfinance
-requests
-altair
-lxml

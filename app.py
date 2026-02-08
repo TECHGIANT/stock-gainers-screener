@@ -363,6 +363,8 @@ if returns_df.empty:
     st.error("No return data could be computed. Try a smaller universe or different tickers.")
     st.stop()
 
+
+
 # Merge with names
 results = (
     returns_df.merge(universe_df, on="ticker", how="left")
@@ -376,11 +378,23 @@ top_results = results.head(top_n)
 meta_df = fetch_metadata(top_results["ticker"].tolist())
 extra_returns_df = fetch_additional_returns(top_results["ticker"].tolist())
 
+
+# ---------------- FIXED MERGE ----------------
+
+# Ensure all 'ticker' columns are clean and string type
+for df in [top_results, meta_df, extra_returns_df]:
+    df.columns = df.columns.str.strip()  # remove whitespace from column names
+    if "ticker" in df.columns:
+        df["ticker"] = df["ticker"].astype(str).str.strip()  # clean ticker values
+
+# Merge safely
 enhanced = (
     top_results
     .merge(meta_df, on="ticker", how="left")
     .merge(extra_returns_df, on="ticker", how="left")
 )
+
+# Compute distance from 52-week high
 enhanced["dist_from_52w_high_pct"] = (enhanced["price"] / enhanced["52w_high"] - 1) * 100
 
 display_df = enhanced.rename(columns={
